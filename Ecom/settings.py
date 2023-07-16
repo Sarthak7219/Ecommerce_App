@@ -126,11 +126,11 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles_build','static')
-
 STATICFILES_DIR = {
     os.path.join(BASE_DIR , "public/static")
 }
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles_build','static')
+
 
 MEDIA_ROOT =  os.path.join(BASE_DIR, 'public/static')    #This setting specifies the absolute filesystem path to the directory where media files will be stored.
 MEDIA_URL = '/media/'   #This setting specifies the base URL that will be used to serve media files.
