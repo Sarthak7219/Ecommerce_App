@@ -126,7 +126,7 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles','static')
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles_build','static')
 
 STATICFILES_DIR = {
     os.path.join(BASE_DIR , "public/static")
@@ -145,7 +145,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sarthakrangari788@gmail.com'
-EMAIL_HOST_PASSWORD = 'Accpass1234'
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 
 
