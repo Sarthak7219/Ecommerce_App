@@ -7,6 +7,7 @@ from accounts.models import Cart,CartItems,Profile
 from Products.models import *
 import razorpay
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -26,10 +27,17 @@ def login_view(request):
         #     return HttpResponseRedirect(request.path_info)
 
         login(request,user_obj)
-        return redirect('/')
+        messages.success(request, "Succesfully logged In")
+        return redirect('home')
         
     return render(request, "accounts/login.html")
 
+def logout_view(request):
+    context={}    
+    logout(request)
+    messages.success(request, "Succesfully logged out")
+    return redirect('home')
+    
 def register_view(request):
     if request.method == "POST":
         first_name = request.POST.get('first_name')
@@ -61,7 +69,7 @@ def register_view(request):
 
     return render(request, 'accounts/register.html')
 
-
+@login_required 
 def add_to_cart(request, uid):
     product = Products.objects.get(uid = uid)
     user = request.user
@@ -80,7 +88,7 @@ def add_to_cart(request, uid):
         
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-
+@login_required 
 def remove_from_cart(request, uid):
     try:
         cart_item = CartItems.objects.get(uid = uid)
@@ -92,14 +100,16 @@ def remove_from_cart(request, uid):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
-
+@login_required 
 def cart_view(request):
     try:
         cart = Cart.objects.get(is_paid = False, user = request.user)
+        cart_items = CartItems.objects.filter(cart = cart)
 
     except Exception as e:
+        print('**********')
         print(e)
-    cart_items = CartItems.objects.filter(cart = cart)
+        print('**********')
 
     
 
@@ -129,19 +139,22 @@ def cart_view(request):
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     
 
-    #Razorpay
-    client = razorpay.Client(auth= (settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    payment = client.order.create({'amount' : cart.get_cart_total()*100, 'currency' : 'INR', 'payment_capture' : 1})
-    print(payment)
-    cart.razorpay_order_id = payment['id']
-    cart.save()
-
     context = {
         'cart' : cart,
         'cart_items' : cart_items,
-        'payment' : payment
         
     }
+    #Razorpay
+    try:
+        client = razorpay.Client(auth= (settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        payment = client.order.create({'amount' : cart.get_cart_total()*100, 'currency' : 'INR', 'payment_capture' : '1'})
+        cart.razorpay_order_id = payment['id']
+        cart.save()
+        context['payment'] = payment
+    
+    except Exception as e:
+        print(e)
+
 
     return render(request, 'accounts/cart.html', context)
 
@@ -152,7 +165,7 @@ def remove_coupon(request, cart_uid):
     messages.success(request, "Coupon removed!")
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     
-
+@login_required 
 def payment_success(request):
     razorpay_order_id = request.GET.get('razorpay_order_id')
     cart = Cart.objects.get(razorpay_order_id = razorpay_order_id)
